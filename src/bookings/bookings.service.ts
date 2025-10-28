@@ -11,10 +11,10 @@ export class BookingsService {
 	constructor(private readonly prisma: PrismaService) {}
 
 	async createBooking(bookingDto: BookingsDto): Promise<Booking> {
-		const { eventId, userId } = bookingDto;
+		const { event_id, user_id } = bookingDto;
 
 		const event = await this.prisma.event.findUnique({
-			where: { id: eventId },
+			where: { id: event_id },
 			include: {
 				_count: {
 					select: { bookings: true },
@@ -22,7 +22,7 @@ export class BookingsService {
 			},
 		})
 
-		if (!event) throw new EventNotFoundError(eventId)
+		if (!event) throw new EventNotFoundError(event_id)
 
 		const availableSeats = event.total_seats - event._count.bookings
 		if (availableSeats <= 0) throw new NoSeatsAvailableException()
@@ -30,8 +30,8 @@ export class BookingsService {
 		try {
 			const booking = await this.prisma.booking.create({
 				data: {
-					eventId,
-					userID: userId,
+					eventId: event_id,
+					userID: user_id,
 				},
 			})
 
@@ -43,7 +43,7 @@ export class BookingsService {
 			}
 		} catch (error) {
 			if (error.code === 'P2002') {
-				throw new DuplicateBookingException(userId, eventId)
+				throw new DuplicateBookingException(user_id, event_id)
 			}
 			throw error
 		}

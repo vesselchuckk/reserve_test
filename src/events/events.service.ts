@@ -33,8 +33,6 @@ export class EventsService {
 
   /**
    * Get a specific event by ID
-   * @param id The ID of the event
-   * @returns The event details or null if not found
    */
   async getById(id: number): Promise<EventsDto | null> {
     const event = await this.prisma.event.findUnique({
