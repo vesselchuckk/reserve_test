@@ -48,6 +48,21 @@ export class BookingsController {
    */
   @Get('/top-users')
   @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "get top10 users by booking" })
+  @ApiResponse({
+    status: 200,
+    description: 'list of best 10 users',
+    type: [TopUserDto]
+  })
+  @ApiQuery({ 
+    name: 'day', required: false, type: Number, description: 'date(DD)' 
+  })
+  @ApiQuery({ 
+    name: 'month', required: false, type: Number, description: 'date(MM)' 
+  })
+  @ApiQuery({ 
+    name: 'year', required: false, type: Number, description: 'date(YYYY)' 
+  })
   async getTopUsers(
     @Query('day') day?: number,
     @Query('month') month?: number,
