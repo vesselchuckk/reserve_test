@@ -23,3 +23,5 @@ export class DuplicateBookingException extends BookingError{
     super(`User ${userId} already has a booking for event ${eventId}`, HttpStatus.CONFLICT)
   }
 }
+
+

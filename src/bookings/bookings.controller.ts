@@ -1,9 +1,10 @@
-import { Controller, HttpStatus, Post } from '@nestjs/common';
+import { Controller, HttpStatus, Post, Query } from '@nestjs/common';
 import { BookingsService } from './bookings.service';
 import { BookingsDto } from './dto/bookings.dto';
+import { TopUserDto } from './dto/top-users.dto';
 import { HttpCode, Param, Get } from '@nestjs/common'; 
-import {  Body } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { Body } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiResponse, ApiQuery } from '@nestjs/swagger';
 
 @ApiTags('bookings')
 @Controller('api/bookings')
@@ -40,6 +41,19 @@ export class BookingsController {
   async getBookingsByUser(@Param("userId") userId: string) {
     const bookings = await this.bookingsService.getBookingsByUser(userId)
     return { bookings }
+  }
+
+  /**
+   * GET /api/bookings/top-users
+   */
+  @Get('/top-users')
+  @HttpCode(HttpStatus.OK)
+  async getTopUsers(
+    @Query('day') day?: number,
+    @Query('month') month?: number,
+    @Query('year') year?: number,
+  ): Promise<TopUserDto[]> {
+    return this.bookingsService.getTop10({ day, month, year });
   }
 
 }

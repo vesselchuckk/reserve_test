@@ -2,6 +2,7 @@ import { Booking } from './../assets/interface/api.interfaces';
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma.service';
 import { BookingsDto } from './dto/bookings.dto';
+import { TopUserDto } from './dto/top-users.dto';
 import { DuplicateBookingException, EventNotFoundError } from 'src/assets/helpers/exceptions';
 import { NoSeatsAvailableException } from 'src/assets/helpers/exceptions';
 import { throwError } from 'rxjs';
@@ -88,4 +89,57 @@ export class BookingsService {
 			created_at: booking.createdAt,
 		}))
 	}
+
+	async getTop10(period?: { day?: number; month?: number; year?: number }): Promise<TopUserDto[]> {
+		let dateFilter = {};
+		
+		if (period) {
+			const { day, month, year } = period;
+			if (year) {
+				dateFilter = {
+					createdAt: {
+						gte: new Date(Date.UTC(year, 0, 1)),
+						lt: new Date(Date.UTC(year + 1, 0, 1)),
+					},
+				};
+			}
+			if (month) {
+				dateFilter = {
+					createdAt: {
+						gte: new Date(Date.UTC(year || new Date().getFullYear(), month - 1, 1)),
+						lt: new Date(Date.UTC(year || new Date().getFullYear(), month, 1)),
+					},
+				};
+			}
+			if (day) {
+				dateFilter = {
+					createdAt: {
+						gte: new Date(Date.UTC(year || new Date().getFullYear(), (month || new Date().getMonth() + 1) - 1, day)),
+						lt: new Date(Date.UTC(year || new Date().getFullYear(), (month || new Date().getMonth() + 1) - 1, day + 1)),
+					},
+				};
+			}
+		}
+
+		const topUsers = await this.prisma.booking.groupBy({
+			by: ['userID'],
+			where: dateFilter,
+			_count: {
+				id: true,
+			},
+			orderBy: {
+				_count: {
+					id: 'desc',
+				},
+			},
+			take: 10,
+		});
+
+		return topUsers.map((user, index) => ({
+			user: user.userID,
+			place: index + 1,
+			bookings_count: user._count.id,
+		}));
+	}
+		
 }
